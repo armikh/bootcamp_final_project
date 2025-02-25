@@ -1,0 +1,25 @@
+{% extends "basic.html" %}
+
+{% block content %}
+    <form method="POST" action="{{ url_for('login') }}">
+        {{ form.csrf_token }}  <!-- CSRF token -->
+        <div>
+            {{ form.username.label }}<br>
+            {{ form.username(size=20) }}<br>
+            {% for error in form.username.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.password.label }}<br>
+            {{ form.password(size=20) }}<br>
+            {% for error in form.password.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+
+{% endblock %}
