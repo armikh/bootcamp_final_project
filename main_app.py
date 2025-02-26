@@ -70,7 +70,9 @@ class AddForm(FlaskForm):
 
 @app.route('/')
 def homepage():
-    return render_template("homepage.html" , title = "Home")
+    categories = db.session.query(Question.category).distinct().all()
+    category_names = [category[0] for category in categories]
+    return render_template('homepage.html', categories=category_names)
 
 
 

@@ -2,5 +2,13 @@
 
 
 {% block content %}
-<h1>Welcome!</h1>
+<h1>Welcome to the Quiz Site</h1>
+<h2>Choose a Category:</h2>
+<div>
+    {% for category in categories %}
+        <button class="category-button" onclick="window.location.href='#'">
+            {{ category }}
+        </button>
+    {% endfor %}
+</div>
 {% endblock %}
