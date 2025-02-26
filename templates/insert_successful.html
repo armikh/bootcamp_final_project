@@ -1,0 +1,14 @@
+{% extends "basic.html" %}
+
+{% block content %}
+    <h1>These Questions Have Been Inserted Successfully:</h1>
+    <ul>
+        {% for question in questions %}
+        <li>
+            <strong>Question:</strong> {{ question['question'] }}<br>
+            <strong>Correct Answer:</strong> {{ question['correct_answer'] }}<br>
+            <strong>Incorrect Answers:</strong> {{ ', '.join(question['incorrect_answers']) }}<br>
+        </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

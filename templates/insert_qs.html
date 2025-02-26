@@ -1,0 +1,31 @@
+{% extends "basic.html" %}
+
+{% block content %}
+    <h1>Insert Questions</h1>
+    <form method="POST" action="{{ url_for('insert_question') }}">
+        {{ form.hidden_tag() }}  <!-- CSRF token for security -->
+        
+        <!-- Amount Field -->
+        <div>
+            {{ form.amount.label }}<br>
+            {{ form.amount(size=32) }}<br>
+            {% for error in form.amount.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <!-- Category Field -->
+        <div>
+            {{ form.category.label }}<br>
+            {{ form.category() }}<br>
+            {% for error in form.category.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+{% endblock %}
