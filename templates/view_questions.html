@@ -1,0 +1,32 @@
+{% extends "basic.html" %}
+
+{% block content %}
+    <h1>All Questions</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Question</th>
+                <th>Correct Answer</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question in questions %}
+            <tr>
+                <td>{{ question.id }}</td>
+                <td>{{ question.category }}</td>
+                <td>{{ question.question_with_choices }}</td>
+                <td>{{ question.answer }}</td>
+                <td>
+                    <!-- Form to delete the question -->
+                    <form action="{{ url_for('delete_question', question_id=question.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this question?');">
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

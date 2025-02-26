@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField,IntegerField,RadioField,SelectField
+from wtforms import StringField,PasswordField,SubmitField,IntegerField,RadioField,SelectField,TextAreaField
 from wtforms.validators import DataRequired,Length, NumberRange
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -55,6 +55,16 @@ class InsertForm(FlaskForm):
     submit = SubmitField('Insert')
 
 
+class AddForm(FlaskForm):
+    category = StringField('Category', validators=[DataRequired()])
+    question_text = StringField('Question Text', validators=[DataRequired()])
+    correct_answer = StringField('Correct Answer', validators=[DataRequired()])
+    incorrect_answer_1 =StringField('Other Choices 1', validators=[DataRequired()])
+    incorrect_answer_2 =StringField('Other Choices 1', validators=[DataRequired()])
+    incorrect_answer_3 =StringField('Other Choices 1', validators=[DataRequired()])
+    submit = SubmitField('Add Question')
+
+
 
 #routes
 
@@ -88,20 +98,44 @@ def admin_dashboard():
 
 
 
-class MultipleChoiceForm(FlaskForm):
-    question = "What is the capital of France?"
-    choices = [('paris', 'Paris'), ('london', 'London'), ('berlin', 'Berlin'), ('madrid', 'Madrid')]
-    answer = RadioField(question, choices=choices)
-    submit = SubmitField('Submit')
 
-
-@app.route('/admin_dashboard/add_question', methods=['GET', 'POST'] )
+@app.route('/admin_dashboard/add_question',methods=['GET','POST'])
 def add_question():
-    pass
+    form = AddForm()
+    if request.method == "POST":
+        if form.validate_on_submit():
+            full_question = (
+                f"Question: {form.question_text.data}\n"
+                f"Choices: {form.correct_answer.data},{form.incorrect_answer_1.data},{form.incorrect_answer_2.data},{form.incorrect_answer_3.data}"
+            )
+            new_question = Question(
+                category=form.category.data,
+                question_with_choices=full_question,
+                answer=form.correct_answer.data
+                )
 
-@app.route('/admin_dashboard/delete_question')
-def delete_question():
-    pass
+        db.session.add(new_question)
+        db.session.commit()
+        return render_template("add_successful.html",title ="Add Successful" )
+    return render_template("add_question.html",form=form,title ="Add Question")
+
+
+@app.route('/admin_dashboard/view_questions')
+def view_questions():
+    all_questions = Question.query.all()
+    return render_template("view_questions.html", questions=all_questions, title="View Question")
+
+@app.route('/delete_question/<int:question_id>', methods=['POST'])
+def delete_question(question_id):
+    question = Question.query.get_or_404(question_id)
+    db.session.delete(question)
+    db.session.commit()
+    flash("Question deleted successfully!", "success")
+    return redirect(url_for('view_questions'))
+
+
+
+
 
 
 @app.route('/admin_dashboard/insert_question',methods=['GET','POST'])
@@ -123,7 +157,7 @@ def insert_question():
             api_url = f"https://opentdb.com/api.php?amount={amount}&category={category}"
             response = requests.get(api_url)
             fetched_questions = response.json()
-            
+
             #adding to database
             for q in fetched_questions["results"]:
                 choices = q['incorrect_answers'] + [q['correct_answer']]
@@ -143,3 +177,4 @@ def insert_question():
 
 if __name__ == '__main__':
     app.run()
+
