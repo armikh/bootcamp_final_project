@@ -156,7 +156,7 @@ def insert_question():
         if insert_form.validate_on_submit():
             amount = insert_form.amount.data
             category = insert_form.category.data
-            api_url = f"https://opentdb.com/api.php?amount={amount}&category={category}"
+            api_url = f"https://opentdb.com/api.php?amount={amount}&category={category}&type=multiple"
             response = requests.get(api_url)
             fetched_questions = response.json()
 
