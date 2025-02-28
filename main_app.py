@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField,IntegerField,RadioField,SelectField,TextAreaField
+from wtforms import StringField,PasswordField,SubmitField,IntegerField,SelectField
 from wtforms.validators import DataRequired,Length, NumberRange
-from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 import requests
 
@@ -10,7 +10,28 @@ import requests
 app = Flask(__name__)
 app.secret_key = "6d82be61e7f69f492eecf153ec165754b3089ae4f7af02ac5699b42ff8b6680e"
 
+login_manager = LoginManager()
+login_manager.init_app(app)
 
+login_manager.login_view = "must_be_admin"
+#login_manager.login_message = "login first"
+
+
+class Admin(UserMixin):
+    def __init__(self, username, password):
+        self.id = 156
+        self.username = username
+        self.password = password
+        self.is_admin = True
+
+
+admin_user = Admin(username="admin",password="admin123")
+
+@login_manager.user_loader
+def load_user(user_id):
+    if int(user_id) == 156:
+        return admin_user
+    return None
 
 
 
@@ -79,6 +100,10 @@ def homepage():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm()
+    if current_user.is_authenticated:
+        if current_user.is_admin:
+            return render_template("already_logged_in.html",title = "Already Logged In")
+    
 
     if request.method == "POST":
         if login_form.validate_on_submit():
@@ -86,15 +111,34 @@ def login():
             password = login_form.password.data
 
             if username == "admin" and password == "admin123":
-                flash('Login successful!', 'success')
+                login_user(admin_user)
                 return redirect(url_for('admin_dashboard'))
-            else:
-                flash('Invalid username or password', 'error')
+            
+            return render_template('login.html', form=login_form, title = "Login",error = "Invalid username or password")
+            
+    
 
     return render_template('login.html', form=login_form, title = "Login")
 
 
+@app.route("/must_be_admin")
+def must_be_admin():
+    return render_template("must_be_admin.html",title = "Must Be Admin")
+
+
+@app.route("/logout")
+def logout():
+    if current_user.is_authenticated:
+        logout_user()
+        return render_template("logout.html", title = "Logout")
+    else:
+        return render_template("login_first.html",title = "Login First")
+
+
+
+    
 @app.route('/admin_dashboard')
+@login_required
 def admin_dashboard():
     return render_template("admin_dashboard.html", title = "Admin Dashboard")
 
