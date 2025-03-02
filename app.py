@@ -1,9 +1,10 @@
-from flask import Flask, request, redirect, url_for, flash, render_template
+from flask import Flask, request, redirect, url_for, flash, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import smtplib
 import random
+import string
 from email.message import EmailMessage
 from flask_migrate import Migrate
 
@@ -22,7 +23,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
+    password = db.Column(db.String(200), nullable=True)  
     otp = db.Column(db.String(6), nullable=True)
     quizzes_taken = db.Column(db.Text, default='')
 
@@ -40,7 +41,7 @@ def send_otp_email(user, otp):
     msg['Subject'] = 'Your One-Time Password (OTP)'
     msg['From'] = 'your_email@example.com'
     msg['To'] = user.email
-    msg.set_content(f'Your OTP code is: {otp}. Use this to complete your registration.')
+    msg.set_content(f'Your OTP code is: {otp}. Use this to log in.')
     
     with smtplib.SMTP('smtp.example.com', 587) as server:
         server.starttls()
@@ -72,12 +73,10 @@ def register():
             return redirect(url_for('register'))
         
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        otp = str(random.randint(100000, 999999))
-        new_user = User(username=username, email=email, password=hashed_password, otp=otp)
+        new_user = User(username=username, email=email, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        send_otp_email(new_user, otp)
-        flash('Registration successful! Check your email for the OTP to verify your account.', 'success')
+        flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('login'))
     
     return render_template('register.html')
@@ -103,6 +102,54 @@ def login():
 
     return render_template('logiin.html')
 
+# Route to request OTP
+@app.route('/send_otp', methods=['GET', 'POST'])
+def send_otp():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            
+            temp_username = "user_" + ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+            user = User(username=temp_username, email=email, password=None)
+            db.session.add(user)
+            db.session.commit()
+
+        
+        otp = str(random.randint(100000, 999999))
+        user.otp = otp
+        db.session.commit()
+        send_otp_email(user, otp)
+        flash('OTP has been sent to your email!', 'success')
+        session['email'] = email
+        return redirect(url_for('login_with_otp'))
+
+    return render_template('send_otp.html')
+
+# Route to login with OTP
+@app.route('/login_with_otp', methods=['GET', 'POST'])
+def login_with_otp():
+    if 'email' not in session:
+        flash('Invalid access. Request OTP first.', 'danger')
+        return redirect(url_for('send_otp'))
+
+    if request.method == 'POST':
+        entered_otp = request.form['otp']
+        email = session['email']
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.otp == entered_otp:
+            user.otp = None
+            db.session.commit()
+            login_user(user)
+            flash('Login successful!', 'success')
+            return redirect(url_for('profile'))
+        else:
+            flash('Invalid OTP!', 'danger')
+            return redirect(url_for('login_with_otp'))
+
+    return render_template('login_with_otp.html')
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -120,7 +167,6 @@ def profile():
             flash('Fields cannot be empty!', 'danger')
 
     return render_template('profile.html', user=current_user)
-
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
