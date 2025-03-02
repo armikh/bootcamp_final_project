@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h1>Question Management</h1>
+    <a href="{{ url_for('fetch_questions') }}">Fetch Questions</a>
+    <ul>
+        {% for question in questions %}
+            <li>
+                <strong>{{ question.category }}</strong>: {{ question.question_text }}
+                <a href="{{ url_for('delete_question', id=question.id) }}">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <form action="{{ url_for('add_question') }}" method="post">
+        <input type="text" name="category" placeholder="Category" required>
+        <input type="text" name="question_text" placeholder="Question" required>
+        <input type="text" name="answer" placeholder="Answer" required>
+        <button type="submit">Add Question</button>
+    </form>
+</body>
+</html>
