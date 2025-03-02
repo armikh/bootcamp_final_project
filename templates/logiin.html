@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #111; /* Pure black background */
+            background-color: #000; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -37,7 +37,7 @@
         {% endwith %}
     </div>
 
-    <div class="glass-card w-full max-w-md p-8 text-white">
+    <div class="glass-card w-full max-w-md p-8 text-white text-center">
         <h2 class="text-3xl font-bold text-center mb-4">Login</h2>
         <form method="POST">
             <div class="relative">
@@ -51,6 +51,12 @@
             </div>
             <button type="submit" class="w-full bg-blue-500 py-2 rounded text-white hover:bg-blue-700 transition">Login</button>
         </form>
+        
+        <!-- Forgot Password Button -->
+        <p class="text-center mt-4">
+            <a href="/forgot_password" class="text-yellow-400 hover:underline">Forgot your password?</a>
+        </p>
+
         <p class="text-center mt-4">Don't have an account? <a href="/register" class="text-blue-400 hover:underline">Sign up here</a></p>
     </div>
 
