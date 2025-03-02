@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
+</head>
+<body>
+    <h1>Quiz Results</h1>
+    <p>You scored {{ score }} out of {{ total }}.</p>
+    <h2>Feedback:</h2>
+    <ul>
+        {% for item in feedback %}
+            <li>
+                <p><strong>Question:</strong> {{ item.question }}</p>
+                <p><strong>Your Answer:</strong> {{ item.user_answer }}</p>
+                <p><strong>Correct Answer:</strong> {{ item.correct_answer }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="/">Back to Home</a>
+</body>
+</html>
