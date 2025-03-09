@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register - Quiz System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex justify-center items-center h-screen relative">
+
+    <!-- Flash Messages (Pop-up Alerts) -->
+    <div id="flash-messages" class="absolute top-5 right-5 space-y-2 z-50">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message bg-{{ 'green-500' if category == 'success' else 'red-500' }} text-white px-4 py-2 rounded shadow">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
+        <h2 class="text-3xl font-bold text-center mb-4">Sign Up</h2>
+        <form method="POST">
+            <input type="text" name="username" placeholder="Username" class="w-full p-3 mb-3 rounded bg-gray-700 text-white">
+            <input type="email" name="email" placeholder="Email" class="w-full p-3 mb-3 rounded bg-gray-700 text-white">
+            <input type="password" name="password" placeholder="Password" class="w-full p-3 mb-3 rounded bg-gray-700 text-white">
+            <button type="submit" class="w-full bg-blue-500 py-2 rounded text-white hover:bg-blue-700">Sign Up</button>
+        </form>
+        <p class="text-center mt-4">Already have an account? <a href="/login" class="text-blue-400">Login here</a></p>
+    </div>
+
+    <!-- JavaScript to Auto-Close Flash Messages -->
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 3000); // Messages disappear after 3 seconds
+    </script>
+</body>
+</html>

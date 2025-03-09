@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login with OTP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white flex justify-center items-center h-screen">
+    
+    <div class="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
+        <h2 class="text-3xl font-bold text-center mb-4">Login with OTP</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message bg-{{ 'green-500' if category == 'success' else 'red-500' }} text-white px-4 py-2 rounded shadow-lg mb-3">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="mb-3">
+                <label class="block mb-1">Enter OTP:</label>
+                <input type="text" name="otp" class="w-full p-3 rounded bg-gray-700 text-white" required>
+            </div>
+            <button type="submit" class="w-full bg-green-500 py-2 rounded text-white hover:bg-green-700 transition">Login</button>
+        </form>
+    </div>
+
+</body>
+</html>

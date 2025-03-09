@@ -11,6 +11,11 @@
         gap: 10px;
         margin-top: 20px;
     }
+    .button-row {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
     .button {
         padding: 10px 20px;
         font-size: 16px;
@@ -21,6 +26,7 @@
         cursor: pointer;
         text-decoration: none;
         width: 150px;
+        text-align: center;
     }
     .button:hover {
         background-color: #0056b3;
@@ -28,19 +34,23 @@
 </style>
 {% endblock %}
 
-
-
 {% block content %}
 <h1>Welcome Admin!</h1>
 <h2>What Is Your Choice?</h2>
 <div class="button-container">
-    <!-- Button 1 -->
-    <a href="{{ url_for('add_question') }}" class="button">Add Question Manually</a>
+    <!-- Button Row -->
+    <div class="button-row">
+        <!-- Button 1 -->
+        <a href="{{ url_for('add_question') }}" class="button">Add Question Manually</a>
+
+        <!-- New Button in the same row as Button 1 -->
+        <a href="#" class="button">Analyze Questions</a>
+    </div>
 
     <!-- Button 2 -->
     <a href="{{ url_for('view_questions') }}" class="button">Delete Question</a>
 
     <!-- Button 3 -->
-    <a href="{{ url_for('insert_question') }}" class="button">Insert Question From Database</a>
+    <a href="{{ url_for('insert_question') }}" class="button">Insert Question From API</a>
 </div>
 {% endblock %}
