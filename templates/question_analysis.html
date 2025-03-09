@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Question Analysis</title>
+</head>
+<body>
+    <h1>Question Analysis</h1>
+
+    <!-- Display all questions and their stats -->
+    <h2>All Questions</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Question ID</th>
+                <th>Question Text</th>
+                <th>Correct Answer Rate (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in analysis_results %}
+            <tr>
+                <td>{{ result.question_id }}</td>
+                <td>{{ result.question_text }}</td>
+                <td>{{ result.correct_answer_rate | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Display questions with very low success rates -->
+    <h2>Questions with Very Low Success Rates (Below {{ low_success_threshold }}%)</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Question ID</th>
+                <th>Question Text</th>
+                <th>Correct Answer Rate (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question in low_success_questions %}
+            <tr>
+                <td>{{ question.question_id }}</td>
+                <td>{{ question.question_text }}</td>
+                <td>{{ question.correct_answer_rate | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

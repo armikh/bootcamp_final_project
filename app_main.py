@@ -52,17 +52,6 @@ class Question(db.Model):
     option3 = db.Column(db.String(200), nullable=False)
     option4 = db.Column(db.String(200), nullable=False)
 
-
-# question model
-# class Question(db.Model):
-#     __bind_key__ = 'quiz'
-#     id = db.Column(db.Integer, primary_key=True)
-#     category = db.Column(db.String(100), nullable=False)
-#     question_with_choices = db.Column(db.String(), nullable=False)
-#     answer = db.Column(db.String(200), nullable=False)
-
-#     def __repr__(self):
-#         return f"Question {self.question_with_choices}"
     
 
 class QuizResult(db.Model):
@@ -353,21 +342,6 @@ def insert_question():
 
 
 
-# taking the quiz
-# @app.route('/category/<category>')
-# def category_questions(category):
-#     questions = Question.query.filter_by(category=category).all()
-#     return render_template("category_questions.html", category=category, questions=questions)
-
-# @app.route('/submit_quiz', methods=['POST'])
-# def submit_quiz():
-#     # Process the submitted quiz answers
-#     for question_id, selected_option in request.form.items():
-#         print(f"Question ID: {question_id}, Selected Option: {selected_option}")
-#         # Add logic to check if the selected option is correct
-#     return redirect(url_for('quiz_results'))  # Redirect to a results page
-
-
 @app.route('/start_quiz', methods=['POST'])
 def start_quiz():
     category = request.form.get('category')
@@ -405,11 +379,19 @@ def submit_quiz():
         is_correct = (selected_option == question.answer)
         if is_correct:
             score += 1
+
+        user_answer = UserAnswer(
+            question_id=question_id,
+            user_answer=selected_option,
+            is_correct=is_correct
+        )
+        db.session.add(user_answer)
         results.append({
                 'question': question.question_text,
                 'selected_option': selected_option,
                 'correct_option': question.answer,
                 'is_correct': is_correct})
+    db.session.commit()
 
     total_questions = len(results)
     percentage_score = (score / total_questions) * 100 if total_questions > 0 else 0
@@ -422,6 +404,79 @@ def submit_quiz():
         results=results)
 
 
+
+# @app.route('/question_analysis')
+# @login_required
+# def question_analysis():
+#     # Query all questions
+#     questions = Question.query.all()
+
+#     # Initialize a list to store analysis results
+#     analysis_results = []
+
+#     for question in questions:
+#         # Count total answers for the question
+#         total_answers = UserAnswer.query.filter_by(question_id=question.id).count()
+
+#         # Count correct answers for the question
+#         correct_answers = UserAnswer.query.filter_by(question_id=question.id, is_correct=True).count()
+
+#         # Calculate correct answer rate
+#         correct_answer_rate = (correct_answers / total_answers * 100) if total_answers > 0 else 0
+
+#         # Append results for this question
+#         analysis_results.append({
+#             'question_id': question.id,
+#             'question_text': question.question_text,
+#             'total_answers': total_answers,
+#             'correct_answers': correct_answers,
+#             'correct_answer_rate': correct_answer_rate
+#         })
+
+#     return render_template("question_analysis.html", analysis_results=analysis_results)
+
+
+@app.route('/question_analysis')
+@login_required
+def question_analysis():
+    # Define a threshold for very low success rate (e.g., 30%)
+    LOW_SUCCESS_RATE_THRESHOLD = 30
+
+    # Query all questions
+    questions = Question.query.all()
+
+    # Initialize a list to store analysis results
+    analysis_results = []
+
+    for question in questions:
+        # Count total answers for the question
+        total_answers = UserAnswer.query.filter_by(question_id=question.id).count()
+
+        # Count correct answers for the question
+        correct_answers = UserAnswer.query.filter_by(question_id=question.id, is_correct=True).count()
+
+        # Calculate correct answer rate
+        correct_answer_rate = (correct_answers / total_answers * 100) if total_answers > 0 else 0
+
+        # Append results for this question
+        analysis_results.append({
+            'question_id': question.id,
+            'question_text': question.question_text,
+            'total_answers': total_answers,
+            'correct_answers': correct_answers,
+            'correct_answer_rate': correct_answer_rate
+        })
+
+    # Identify questions with very low success rates (below the threshold)
+    low_success_questions = [q for q in analysis_results if q["correct_answer_rate"] < LOW_SUCCESS_RATE_THRESHOLD]
+
+    return render_template(
+        "question_analysis.html", 
+        analysis_results=analysis_results,  # All questions and their stats
+        low_success_questions=low_success_questions,  # Questions with very low success rates
+        low_success_threshold=LOW_SUCCESS_RATE_THRESHOLD  # Pass the threshold to the template
+    )
+    
 
 if __name__ == '__main__':
     app.run()
