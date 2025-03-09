@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,3 +79,85 @@
     </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - Quiz System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Flash Messages (Pop-up Alerts) -->
+    <div id="flash-messages" class="absolute top-5 right-5 space-y-2 z-50">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message bg-{{ 'green-500' if category == 'success' else 'red-500' }} text-white px-4 py-2 rounded shadow-lg transition-opacity duration-500 ease-in-out">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="glass-card w-full max-w-md p-8 text-white text-center">
+        <h2 class="text-3xl font-bold text-center mb-4">Login</h2>
+        <form method="POST">
+            <div class="relative">
+                <input type="text" name="username" placeholder="Username" class="w-full p-3 mb-3 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="relative">
+                <input id="password" type="password" name="password" placeholder="Password" class="w-full p-3 mb-3 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <button type="button" onclick="togglePassword()" class="absolute right-3 top-4 text-gray-400 hover:text-white">
+                    👁️
+                </button>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 py-2 rounded text-white hover:bg-blue-700 transition">Login</button>
+        </form>
+        
+        <!-- Forgot Password Button -->
+        <p class="text-center mt-4">
+            <a href="/forgot_password" class="text-yellow-400 hover:underline">Forgot your password?</a>
+        </p>
+
+        <p class="text-center mt-4">Don't have an account? <a href="/register" class="text-blue-400 hover:underline">Sign up here</a></p>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Auto-Close Flash Messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 3000); // Messages disappear after 3 seconds
+
+        // Toggle Password Visibility
+        function togglePassword() {
+            let passwordInput = document.getElementById('password');
+            passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+</body>
+</html>
+>>>>>>> 9c9168a87d13cf3e1ab7699318ac25f7f384e7bb
