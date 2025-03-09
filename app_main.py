@@ -11,7 +11,8 @@ import requests
 from flask_wtf import FlaskForm
 from wtforms import StringField,SubmitField,IntegerField,SelectField
 from wtforms.validators import DataRequired,Length, NumberRange
-
+from html import unescape
+from random import shuffle
 
 # Flask Configuration
 app = Flask(__name__)
@@ -40,28 +41,28 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(200), nullable=True)
     otp = db.Column(db.String(6), nullable=True)
 
-# class Question(db.Model):
-#     __bind_key__ = 'quiz'
-#     id = db.Column(db.Integer, primary_key=True)
-#     category = db.Column(db.String(100), nullable=False)
-#     question_text = db.Column(db.String(500), nullable=False, unique=True)
-#     answer = db.Column(db.String(200), nullable=False)
-#     option1 = db.Column(db.String(200), nullable=False)
-#     option2 = db.Column(db.String(200), nullable=False)
-#     option3 = db.Column(db.String(200), nullable=False)
-#     option4 = db.Column(db.String(200), nullable=False)
-
-
-# question model
 class Question(db.Model):
     __bind_key__ = 'quiz'
     id = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(100), nullable=False)
-    question_with_choices = db.Column(db.String(), nullable=False)
+    question_text = db.Column(db.String(500), nullable=False, unique=True)
     answer = db.Column(db.String(200), nullable=False)
+    option1 = db.Column(db.String(200), nullable=False)
+    option2 = db.Column(db.String(200), nullable=False)
+    option3 = db.Column(db.String(200), nullable=False)
+    option4 = db.Column(db.String(200), nullable=False)
 
-    def __repr__(self):
-        return f"Question {self.question_with_choices}"
+
+# question model
+# class Question(db.Model):
+#     __bind_key__ = 'quiz'
+#     id = db.Column(db.Integer, primary_key=True)
+#     category = db.Column(db.String(100), nullable=False)
+#     question_with_choices = db.Column(db.String(), nullable=False)
+#     answer = db.Column(db.String(200), nullable=False)
+
+#     def __repr__(self):
+#         return f"Question {self.question_with_choices}"
     
 
 class QuizResult(db.Model):
@@ -219,18 +220,7 @@ def login():
     
     return render_template('logiin.html')
 
-@app.route('/categories')
-@login_required
-def choose_category():
-    categories = db.session.query(Question.category).distinct().all()
-    category_names = [category[0] for category in categories]
 
-    category_questions = {}
-    for category in category_names:
-        questions = Question.query.filter_by(category=category).all()
-        category_questions[category] = questions
-
-    return render_template("choose_category.html", categories=category_names, category_questions=category_questions)
 
 
 
@@ -280,23 +270,36 @@ def homepage():
     return render_template('homepage.html', categories=category_names)
 
 
+def create_question(category, question_text, correct_answer, incorrect_answers):
+    choices = incorrect_answers + [correct_answer]
+    shuffle(choices)
+    return Question(
+        category=category,
+        question_text=question_text,
+        answer=correct_answer,
+        option1=choices[0],
+        option2=choices[1],
+        option3=choices[2],
+        option4=choices[3]
+        )
+
+
 @app.route('/admin_dashboard/add_question',methods=['GET','POST'])
 def add_question():
     form = AddForm()
     if request.method == "POST":
         if form.validate_on_submit():
-            full_question = (
-                f"Question: {form.question_text.data}\n"
-                f"Choices: {form.correct_answer.data},{form.incorrect_answer_1.data},{form.incorrect_answer_2.data},{form.incorrect_answer_3.data}"
-            )
-            new_question = Question(
+            new_question = create_question(
                 category=form.category.data,
-                question_with_choices=full_question,
-                answer=form.correct_answer.data
-                )
-
-        db.session.add(new_question)
-        db.session.commit()
+                question_text=unescape(form.question_text.data),
+                correct_answer=unescape(form.correct_answer.data),
+                incorrect_answers=[
+                    unescape(form.incorrect_answer_1.data),
+                    unescape(form.incorrect_answer_2.data),
+                    unescape(form.incorrect_answer_3.data)])
+            
+            db.session.add(new_question)
+            db.session.commit()
         return render_template("add_successful.html",title ="Add Successful" )
     return render_template("add_question.html",form=form,title ="Add Question")
 
@@ -337,17 +340,88 @@ def insert_question():
 
             #adding to database
             for q in fetched_questions["results"]:
-                choices = q['incorrect_answers'] + [q['correct_answer']]
-                question_with_choices = f"{q['question']}\nChoices: {', '.join(choices)}"
-                new_question = Question(
+                new_question = create_question(
                     category=q['category'],
-                    question_with_choices=question_with_choices,
-                    answer=q['correct_answer']
-                )
+                    question_text=unescape(q['question']),
+                    correct_answer=unescape(q['correct_answer']),
+                    incorrect_answers=[unescape(ans) for ans in q['incorrect_answers']])
                 db.session.add(new_question)
+
             db.session.commit()
             return render_template("insert_successful.html",title="Insert Success",questions = fetched_questions['results'])
     return render_template("insert_qs.html",title="Insert Questions",form=insert_form)
+
+
+
+# taking the quiz
+# @app.route('/category/<category>')
+# def category_questions(category):
+#     questions = Question.query.filter_by(category=category).all()
+#     return render_template("category_questions.html", category=category, questions=questions)
+
+# @app.route('/submit_quiz', methods=['POST'])
+# def submit_quiz():
+#     # Process the submitted quiz answers
+#     for question_id, selected_option in request.form.items():
+#         print(f"Question ID: {question_id}, Selected Option: {selected_option}")
+#         # Add logic to check if the selected option is correct
+#     return redirect(url_for('quiz_results'))  # Redirect to a results page
+
+
+@app.route('/start_quiz', methods=['POST'])
+def start_quiz():
+    category = request.form.get('category')
+    question_count = int(request.form.get('question_count'))
+
+    available_questions = Question.query.filter_by(category=category).count()
+
+    if available_questions >= question_count:
+        questions = Question.query.filter_by(category=category).limit(question_count).all()
+        return render_template("quiz.html", category=category, questions=questions)
+    else:
+        flash(f"Only {available_questions} questions are available in the '{category}' category.", "error")
+        return redirect(url_for('choose_category'))
+    
+
+@app.route('/categories')
+@login_required
+def choose_category():
+    categories = db.session.query(Question.category).distinct().all()
+    category_names = [category[0] for category in categories]
+    return render_template("choose_category.html", categories=category_names)
+
+
+@app.route('/submit_quiz', methods=['POST'])
+@login_required
+def submit_quiz():
+    score = 0
+    results = []
+    for question_id, selected_option in request.form.items():
+        question = Question.query.get(int(question_id))
+        if not question:
+            flash("Invalid question ID.", "error")
+            return redirect(url_for('choose_category'))
+
+        is_correct = (selected_option == question.answer)
+        if is_correct:
+            score += 1
+        results.append({
+                'question': question.question_text,
+                'selected_option': selected_option,
+                'correct_option': question.answer,
+                'is_correct': is_correct})
+
+    total_questions = len(results)
+    percentage_score = (score / total_questions) * 100 if total_questions > 0 else 0
+
+    return render_template(
+        "quiz_results.html",
+        score=score,
+        total_questions=total_questions,
+        percentage_score=percentage_score,
+        results=results)
+
+
 
 if __name__ == '__main__':
     app.run()

@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from flask_sqlalchemy import SQLAlchemy
-
-=======
->>>>>>> 9c9168a87d13cf3e1ab7699318ac25f7f384e7bb
 
 class UserAnswer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
