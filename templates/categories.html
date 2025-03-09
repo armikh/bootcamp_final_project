@@ -2,15 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select a Category</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quiz Difficulty Levels</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Select a Category</h1>
-    <ul>
-        {% for category in categories %}
-            <li><a href="{{ url_for('take_quiz', category=category[0]) }}">{{ category[0] }}</a></li>
-        {% endfor %}
-    </ul>
+<body class="bg-gray-900 text-white flex flex-col justify-center items-center min-h-screen">
+    <div class="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
+        <h2 class="text-3xl font-bold text-center mb-4">Select Difficulty Level</h2>
+        
+        <ul class="space-y-3">
+            <li>
+                <a href="{{ url_for('take_quiz', difficulty='easy') }}" 
+                   class="block bg-green-500 hover:bg-green-600 text-white text-center py-2 px-4 rounded-md">
+                    Easy
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('take_quiz', difficulty='medium') }}" 
+                   class="block bg-yellow-500 hover:bg-yellow-600 text-white text-center py-2 px-4 rounded-md">
+                    Medium
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('take_quiz', difficulty='hard') }}" 
+                   class="block bg-red-500 hover:bg-red-600 text-white text-center py-2 px-4 rounded-md">
+                    Hard
+                </a>
+            </li>
+        </ul>
+        
+        <p class="text-center mt-4">
+            <a href="{{ url_for('profile') }}" class="text-red-400 hover:underline">Back to Profile</a>
+        </p>
+    </div>
 </body>
 </html>
